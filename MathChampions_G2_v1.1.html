@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>Math Champions!</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap');
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+
+    :root {
+      --c0: #FF6B6B;
+      --c1: #4ECDC4;
+      --c2: #FFD93D;
+      --c3: #C77DFF;
+      --bg:   #1a1a2e;
+      --card: #16213e;
+      --text: #ffffff;
+    }
+
+    html { height: 100%; }
+    body { height: 100%; overflow: hidden; position: fixed; width: 100%; }
+
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 10px 14px;
+      gap: 8px;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 900;
+      background: linear-gradient(90deg, #FF6B6B, #FFD93D, #4ECDC4, #C77DFF);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+    }
+
+    /* ════════════════════════════════
+       SETUP SCREEN
+    ════════════════════════════════ */
+    #setupScreen {
+      background: var(--card);
+      border-radius: 22px;
+      padding: 22px 24px;
+      width: 100%;
+      max-width: 480px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.4);
+      flex: 1;
+      min-height: 0;
+    }
+
+    .setup-label {
+      font-size: 1rem;
+      font-weight: 700;
+      opacity: 0.8;
+    }
+
+    /* player count selector */
+    .count-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .count-btn {
+      font-family: 'Nunito', sans-serif;
+      font-size: 1.6rem;
+      font-weight: 900;
+      width: 58px; height: 58px;
+      border-radius: 16px;
+      border: 3px solid #ffffff20;
+      background: #ffffff0d;
+      color: var(--text);
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s, transform 0.1s;
+    }
+
+    .count-btn:active { transform: scale(0.92); }
+
+    .count-btn.sel-0 { border-color: var(--c0); background: #FF6B6B22; color: var(--c0); }
+    .count-btn.sel-1 { border-color: var(--c1); background: #4ECDC422; color: var(--c1); }
+    .count-btn.sel-2 { border-color: var(--c2); background: #FFD93D22; color: var(--c2); }
+    .count-btn.sel-3 { border-color: var(--c3); background: #C77DFF22; color: var(--c3); }
+
+    /* name inputs */
+    .names-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 100%;
+    }
+
+    .name-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .name-avatar {
+      font-size: 1.4rem;
+      width: 34px;
+      text-align: center;
+    }
+
+    .name-input {
+      font-family: 'Nunito', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      flex: 1;
+      padding: 8px 14px;
+      border-radius: 12px;
+      border: 2.5px solid #ffffff25;
+      background: #ffffff0d;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .name-input:focus    { border-color: #ffffff70; }
+    .name-input.color-0  { border-color: var(--c0); }
+    .name-input.color-1  { border-color: var(--c1); }
+    .name-input.color-2  { border-color: var(--c2); }
+    .name-input.color-3  { border-color: var(--c3); }
+
+    .btn-start {
+      font-family: 'Nunito', sans-serif;
+      font-size: 1.2rem;
+      font-weight: 900;
+      padding: 13px 40px;
+      border-radius: 18px;
+      border: none;
+      background: linear-gradient(135deg, #6BCB77, #4FC3F7);
+      color: #000;
+      cursor: pointer;
+      transition: transform 0.1s, opacity 0.2s;
+      margin-top: 4px;
+    }
+    .btn-start:active   { transform: scale(0.96); }
+    .btn-start:disabled { opacity: 0.35; cursor: default; }
+
+    /* ════════════════════════════════
+       SCOREBOARD
+    ════════════════════════════════ */
+    .scoreboard {
+      display: none;
+      gap: 8px;
+      width: 100%;
+      max-width: 680px;
+    }
+    .scoreboard.visible { display: flex; }
+
+    .player-card {
+      flex: 1;
+      background: var(--card);
+      border-radius: 14px;
+      padding: 8px 6px;
+      text-align: center;
+      border: 2px solid transparent;
+      transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s;
+      position: relative;
+    }
+    .player-card.active {
+      transform: scale(1.04);
+      box-shadow: 0 0 16px var(--pc);
+      border-color: var(--pc);
+    }
+    .turn-badge {
+      position: absolute;
+      top: -8px; left: 50%;
+      transform: translateX(-50%);
+      background: var(--pc);
+      color: #000;
+      font-size: 0.55rem; font-weight: 900;
+      padding: 1px 8px; border-radius: 20px;
+      white-space: nowrap; opacity: 0;
+      transition: opacity 0.25s;
+    }
+    .player-card.active .turn-badge { opacity: 1; }
+    .player-avatar  { font-size: 1.4rem; line-height: 1.2; }
+    .player-name    { font-size: 0.85rem; font-weight: 900; color: var(--pc); }
+    .player-score   { font-size: 1.5rem;  font-weight: 900; line-height: 1.1; }
+    .player-minutes { font-size: 0.65rem; opacity: 0.65; }
+
+    /* ════════════════════════════════
+       GAME BOX
+    ════════════════════════════════ */
+    #gameBox {
+      display: none;
+      background: var(--card);
+      border-radius: 22px;
+      padding: 14px 18px 12px;
+      width: 100%;
+      max-width: 480px;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.4);
+      flex: 1;
+      min-height: 0;
+    }
+    #gameBox.visible { display: flex; }
+
+    .round-info { font-size: 0.7rem; opacity: 0.5; }
+    .whose-turn { font-size: 0.95rem; font-weight: 700; opacity: 0.85; }
+
+    .op-badge {
+      font-size: 0.65rem; font-weight: 700;
+      padding: 2px 10px; border-radius: 30px;
+      letter-spacing: 1px; text-transform: uppercase;
+    }
+    .op-badge.add { background: #4ECDC420; color: #4ECDC4; border: 1.5px solid #4ECDC4; }
+    .op-badge.sub { background: #FF6B6B20; color: #FF6B6B; border: 1.5px solid #FF6B6B; }
+    .op-badge.mul { background: #FFD93D20; color: #FFD93D; border: 1.5px solid #FFD93D; }
+
+    .question {
+      font-size: 2.6rem; font-weight: 900;
+      letter-spacing: 3px; line-height: 1;
+    }
+
+    .answer-display {
+      font-size: 2rem; font-weight: 900;
+      width: 120px; padding: 7px 12px;
+      border-radius: 14px; border: 3px solid #ffffff30;
+      background: #ffffff10; text-align: center;
+      letter-spacing: 3px; min-height: 54px; line-height: 1.2;
+      transition: border-color 0.25s, background 0.25s;
+    }
+    .answer-display.correct { border-color: #6BCB77; background: #6BCB7720; }
+    .answer-display.wrong   { border-color: #FF6B6B; background: #FF6B6B20; }
+
+    .feedback {
+      font-size: 1rem; font-weight: 900;
+      min-height: 26px; text-align: center;
+    }
+    .feedback.correct-fb { color: #6BCB77; }
+    .feedback.wrong-fb   { color: #FF6B6B; }
+
+    .countdown-wrap { display: none; align-items: center; gap: 6px; }
+    .countdown-wrap.visible { display: flex; }
+    .countdown-svg circle.track { fill: none; stroke: #ffffff15; stroke-width: 4; }
+    .countdown-svg circle.bar {
+      fill: none; stroke: #FFD93D; stroke-width: 4; stroke-linecap: round;
+      transform: rotate(-90deg); transform-origin: 50% 50%;
+      transition: stroke-dashoffset 0.1s linear;
+    }
+    .countdown-text { font-size: 0.8rem; font-weight: 700; opacity: 0.7; }
+
+    .numpad {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 7px;
+      width: 100%; max-width: 300px;
+    }
+    .numpad-btn {
+      font-family: 'Nunito', sans-serif;
+      font-size: 1.5rem; font-weight: 900;
+      padding: 10px 0; border-radius: 12px;
+      border: 2px solid #ffffff18; background: #ffffff0d;
+      color: var(--text); cursor: pointer;
+      transition: background 0.1s, transform 0.1s;
+      user-select: none; -webkit-user-select: none;
+      touch-action: manipulation;
+    }
+    .numpad-btn:active { background: #ffffff30; transform: scale(0.93); }
+    .numpad-btn.zero  { grid-column: span 2; }
+    .numpad-btn.del   { background: #FF6B6B18; border-color: #FF6B6B40; font-size: 1.2rem; }
+    .numpad-btn.check {
+      grid-column: span 3;
+      background: linear-gradient(135deg, #6BCB77, #4FC3F7);
+      color: #000; font-size: 1.1rem; border: none;
+    }
+    .numpad-btn.check:disabled { opacity: 0.35; cursor: default; transform: none; }
+
+    /* ════════════════════════════════
+       END SCREEN
+    ════════════════════════════════ */
+    #endScreen {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      width: 100%; max-width: 500px;
+      flex: 1; justify-content: center;
+    }
+    #endScreen.visible { display: flex; }
+
+    #endScreen h2 {
+      font-size: 1.8rem; font-weight: 900;
+      background: linear-gradient(90deg, #FFD93D, #FF6B6B);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .result-list { width: 100%; display: flex; flex-direction: column; gap: 10px; }
+    .result-item {
+      background: var(--card); border-radius: 16px;
+      padding: 12px 18px; display: flex; align-items: center;
+      gap: 14px; border-left: 5px solid var(--rc);
+    }
+    .result-rank    { font-size: 1.8rem; }
+    .result-info    { flex: 1; }
+    .result-name    { font-size: 1.1rem; font-weight: 900; color: var(--rc); }
+    .result-score   { font-size: 0.85rem; opacity: 0.7; }
+    .result-minutes { font-size: 1.4rem; font-weight: 900; color: var(--rc); }
+
+    .end-btns { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+
+    .btn-end {
+      font-family: 'Nunito', sans-serif;
+      font-size: 1.1rem; font-weight: 900;
+      padding: 11px 26px; border-radius: 16px; border: none; cursor: pointer;
+    }
+    .btn-again  { background: linear-gradient(135deg, #4ECDC4, #6BCB77); color: #000; }
+    .btn-change { background: #ffffff18; color: var(--text); border: 2px solid #ffffff30; }
+
+    /* ════════════════════════════════
+       MILESTONE MODAL
+    ════════════════════════════════ */
+    .modal-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.visible { display: flex; }
+
+    .modal {
+      background: var(--card);
+      border-radius: 24px;
+      padding: 28px 28px 22px;
+      max-width: 360px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+      border: 3px solid var(--mc);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      animation: popIn 0.25s ease-out;
+    }
+    @keyframes popIn {
+      from { transform: scale(0.8); opacity: 0; }
+      to   { transform: scale(1);   opacity: 1; }
+    }
+
+    .modal-trophy { font-size: 3rem; line-height: 1; }
+    .modal-title  { font-size: 1.4rem; font-weight: 900; color: var(--mc); }
+    .modal-body   { font-size: 1rem; opacity: 0.85; line-height: 1.5; }
+
+    .modal-btns { display: flex; flex-direction: column; gap: 9px; width: 100%; }
+
+    .modal-btn {
+      font-family: 'Nunito', sans-serif;
+      font-size: 1rem; font-weight: 900;
+      padding: 11px 16px; border-radius: 14px;
+      border: none; cursor: pointer;
+      transition: transform 0.1s;
+    }
+    .modal-btn:active { transform: scale(0.96); }
+    .modal-btn.continue { background: linear-gradient(135deg, #6BCB77, #4FC3F7); color: #000; }
+    .modal-btn.reset    { background: linear-gradient(135deg, #FFD93D, #FF6B6B); color: #000; }
+    .modal-btn.stop     { background: #ffffff18; color: var(--text); border: 2px solid #ffffff30; }
+
+    /* ── Fireworks ── */
+    .burst {
+      position: fixed; font-size: 2rem; pointer-events: none;
+      animation: flyUp 1s ease-out forwards; z-index: 999;
+    }
+    @keyframes flyUp {
+      0%   { opacity: 1; transform: translateY(0) scale(1); }
+      100% { opacity: 0; transform: translateY(-120px) scale(1.6); }
+    }
+  </style>
+</head>
+<body>
+
+  <div style="width:100%;max-width:680px;display:flex;align-items:center;justify-content:space-between;">
+    <h1>🧮 Math Champions!</h1>
+    <div style="display:flex;gap:4px;align-items:center;">
+      <button type="button" onclick="toggleInfo()" title="About this game"
+        style="font-size:1rem;font-weight:900;font-family:'Nunito',sans-serif;background:none;border:2px solid #ffffff30;color:#ffffff90;cursor:pointer;padding:2px 9px;border-radius:10px;line-height:1.4;transition:background 0.15s;"
+        onmouseover="this.style.background='#ffffff18'" onmouseout="this.style.background='none'">i</button>
+      <button type="button" id="muteBtn" onclick="toggleMute()" title="Toggle sound"
+        style="font-size:1.4rem;background:none;border:none;cursor:pointer;padding:4px 6px;border-radius:10px;line-height:1;transition:background 0.15s;"
+        onmouseover="this.style.background='#ffffff18'" onmouseout="this.style.background='none'">🔊</button>
+    </div>
+  </div>
+
+  <!-- ── SETUP SCREEN ── -->
+  <div id="setupScreen">
+    <div class="setup-label">How many players?</div>
+    <div class="count-row" id="countRow">
+      <button type="button" class="count-btn" onclick="setCount(1)">1</button>
+      <button type="button" class="count-btn" onclick="setCount(2)">2</button>
+      <button type="button" class="count-btn" onclick="setCount(3)">3</button>
+      <button type="button" class="count-btn" onclick="setCount(4)">4</button>
+    </div>
+
+    <div class="setup-label">Player names</div>
+    <div class="names-grid" id="namesGrid"></div>
+
+    <button type="button" class="btn-start" id="startBtn" onclick="startGame()" disabled>🚀 Start Game!</button>
+  </div>
+
+  <!-- ── SCOREBOARD ── -->
+  <div class="scoreboard" id="scoreboard"></div>
+
+  <!-- ── GAME BOX ── -->
+  <div id="gameBox">
+    <div class="round-info" id="roundInfo"></div>
+    <div class="whose-turn" id="whoseTurn"></div>
+    <div class="op-badge" id="opBadge"></div>
+    <div class="question" id="question"></div>
+    <div class="answer-display" id="answerDisplay">?</div>
+    <div class="feedback" id="feedback"></div>
+
+    <div class="countdown-wrap" id="countdownWrap">
+      <svg class="countdown-svg" width="36" height="36" viewBox="0 0 44 44">
+        <circle class="track" cx="22" cy="22" r="18"/>
+        <circle class="bar" id="countdownBar" cx="22" cy="22" r="18"
+          stroke-dasharray="113" stroke-dashoffset="0"/>
+      </svg>
+      <div class="countdown-text" id="countdownText"></div>
+    </div>
+
+    <div class="numpad" id="numpad">
+      <button type="button" class="numpad-btn" onclick="padPress(7)">7</button>
+      <button type="button" class="numpad-btn" onclick="padPress(8)">8</button>
+      <button type="button" class="numpad-btn" onclick="padPress(9)">9</button>
+      <button type="button" class="numpad-btn" onclick="padPress(4)">4</button>
+      <button type="button" class="numpad-btn" onclick="padPress(5)">5</button>
+      <button type="button" class="numpad-btn" onclick="padPress(6)">6</button>
+      <button type="button" class="numpad-btn" onclick="padPress(1)">1</button>
+      <button type="button" class="numpad-btn" onclick="padPress(2)">2</button>
+      <button type="button" class="numpad-btn" onclick="padPress(3)">3</button>
+      <button class="numpad-btn zero" onclick="padPress(0)">0</button>
+      <button class="numpad-btn del"  onclick="padDel()">⌫</button>
+      <button class="numpad-btn check" id="checkBtn" onclick="checkAnswer()">✓ Check</button>
+    </div>
+  </div>
+
+  <!-- ── INFO MODAL ── -->
+  <div class="modal-overlay" id="infoModal" onclick="if(event.target===this)toggleInfo()">
+    <div class="modal" style="--mc:#4ECDC4;max-width:380px;">
+      <div style="font-size:2rem">ℹ️</div>
+      <div class="modal-title">About this game</div>
+      <div class="modal-body" style="text-align:left;line-height:1.7;">
+        This game was developed on <strong>27.06.2026</strong> with AI support so that my son
+        <strong>Rayan</strong> (2G) and his friends (<strong>Themi</strong> and <strong>Daiwik</strong>)
+        can play while learning and collect points to watch a kids movie.<br><br>
+        📧 <a href="mailto:amin.agina@gmail.com" style="color:#4ECDC4;">amin.agina@gmail.com</a><br><br>
+        🔖 Version <strong>v1.1</strong>
+      </div>
+      <button type="button" class="modal-btn continue" onclick="toggleInfo()" style="width:100%;">Close</button>
+    </div>
+  </div>
+
+  <!-- ── MILESTONE MODAL ── -->
+  <div class="modal-overlay" id="milestoneModal">
+    <div class="modal" id="milestoneModalInner">
+      <div class="modal-trophy">🏆</div>
+      <div class="modal-title" id="milestoneTitle"></div>
+      <div class="modal-body"  id="milestoneBody"></div>
+      <div class="modal-btns">
+        <button type="button" class="modal-btn continue" onclick="milestoneChoice('continue')">▶️ Continue playing</button>
+        <button type="button" class="modal-btn reset"    onclick="milestoneChoice('reset')">🔄 Restart from 0</button>
+        <button type="button" class="modal-btn stop"     onclick="milestoneChoice('stop')">🛑 Stop the game</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── END SCREEN ── -->
+  <div id="endScreen">
+    <h2>🏆 Game Over! 🏆</h2>
+    <div class="result-list" id="resultList"></div>
+    <div class="end-btns">
+      <button type="button" class="btn-end btn-again"  onclick="playAgain()">🔄 Play Again</button>
+      <button type="button" class="btn-end btn-change" onclick="goSetup()">👥 Change Players</button>
+    </div>
+  </div>
+
+<script>
+  const AVATARS = ['🦁','🐯','🐻','🐼'];
+  const COLORS  = ['var(--c0)','var(--c1)','var(--c2)','var(--c3)'];
+  const POINTS_PER_CORRECT = 2;
+  const MILESTONE = 20;
+
+  let players = [];      // [{name, avatar, color, id}]
+  let scores  = [];
+  let currentPlayer = 0, round = 0;
+  let correctAnswer = 0, answered = false, currentEntry = '';
+  let countdownTimer = null;
+  let selectedCount  = 0;
+
+  // ── Setup ────────────────────────────────────────────────────
+  function setCount(n) {
+    selectedCount = n;
+    // highlight selected button
+    document.querySelectorAll('.count-btn').forEach((btn, i) => {
+      btn.className = 'count-btn' + (i === n - 1 ? ` sel-${i}` : '');
+    });
+    // render name inputs
+    const grid = document.getElementById('namesGrid');
+    grid.innerHTML = '';
+    for (let i = 0; i < n; i++) {
+      grid.innerHTML += `
+        <div class="name-row">
+          <div class="name-avatar">${AVATARS[i]}</div>
+          <input class="name-input color-${i}" id="nameInput${i}"
+            type="text" placeholder="Player ${i + 1} name"
+            maxlength="12" oninput="validateNames()" />
+        </div>`;
+    }
+    // focus first
+    setTimeout(() => document.getElementById('nameInput0').focus(), 50);
+    validateNames();
+  }
+
+  function validateNames() {
+    document.getElementById('startBtn').disabled = selectedCount === 0;
+  }
+
+  function startGame() {
+    players = [];
+    scores  = [];
+    for (let i = 0; i < selectedCount; i++) {
+      const name = document.getElementById(`nameInput${i}`).value.trim() || `Player ${i + 1}`;
+      players.push({ name, avatar: AVATARS[i], color: COLORS[i], id: i });
+      scores.push(0);
+    }
+    currentPlayer = 0;
+    round         = 0;
+
+    document.getElementById('setupScreen').style.display = 'none';
+    buildScoreboard();
+    document.getElementById('scoreboard').classList.add('visible');
+    document.getElementById('gameBox').classList.add('visible');
+    startTurn();
+  }
+
+  // ── Scoreboard ───────────────────────────────────────────────
+  function buildScoreboard() {
+    const sb = document.getElementById('scoreboard');
+    sb.innerHTML = players.map(p => `
+      <div class="player-card" id="card-${p.id}" style="--pc:${p.color}">
+        <div class="turn-badge">👉 My turn!</div>
+        <div class="player-avatar">${p.avatar}</div>
+        <div class="player-name">${p.name}</div>
+        <div class="player-score" id="score-${p.id}">0</div>
+        <div class="player-minutes" id="min-${p.id}">0 min 🕐</div>
+      </div>`).join('');
+  }
+
+  function updateScoreboard() {
+    players.forEach((p, i) => {
+      document.getElementById(`score-${p.id}`).textContent = scores[i];
+      document.getElementById(`min-${p.id}`).textContent   = `${scores[i]} min 🕐`;
+      document.getElementById(`card-${p.id}`).classList.toggle('active', i === currentPlayer);
+    });
+  }
+
+  // ── Praise pool ─────────────────────────────────────────────
+  const PRAISE = [
+    'Well done!', 'Amazing!', 'Fantastic!', 'Brilliant!',
+    'Super!', 'Excellent!', 'Great job!', 'You rock!',
+    'Awesome!', 'Perfect!', 'Incredible!', 'Spot on!',
+    'You nailed it!', 'Superstar!', 'Keep it up!',
+  ];
+  function randomPraise() {
+    return PRAISE[Math.floor(Math.random() * PRAISE.length)];
+  }
+
+  // ── Info modal ───────────────────────────────────────────────
+  function toggleInfo() {
+    document.getElementById('infoModal').classList.toggle('visible');
+  }
+
+  // ── Sound / mute ─────────────────────────────────────────────
+  let muted = false;
+  function toggleMute() {
+    muted = !muted;
+    document.getElementById('muteBtn').textContent = muted ? '🔇' : '🔊';
+    if (muted && window.speechSynthesis) window.speechSynthesis.cancel();
+  }
+  function speak(text) {
+    if (muted || !window.speechSynthesis) return;
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'en-US'; u.rate = 0.9; u.pitch = 1.2;
+    window.speechSynthesis.speak(u);
+  }
+
+  // ── Numpad ───────────────────────────────────────────────────
+  function padPress(d) {
+    if (answered || currentEntry.length >= 3) return;
+    currentEntry += d;
+    renderDisplay('');
+  }
+  function padDel() {
+    if (answered) return;
+    currentEntry = currentEntry.slice(0, -1);
+    renderDisplay('');
+  }
+  function renderDisplay(cls) {
+    const d = document.getElementById('answerDisplay');
+    d.textContent = currentEntry || '?';
+    d.className = 'answer-display' + (cls ? ' ' + cls : '');
+  }
+
+  // ── Question ─────────────────────────────────────────────────
+  function rand(a, b) { return Math.floor(Math.random() * (b - a + 1)) + a; }
+
+  function generateQuestion() {
+    const op = ['add','sub','mul'][Math.floor(Math.random() * 3)];
+    let a, b, sym, label;
+    if (op === 'add') {
+      do { a = rand(1,49); b = rand(1,49); } while (a+b >= 100);
+      sym = '+'; label = '➕ Addition'; correctAnswer = a + b;
+    } else if (op === 'sub') {
+      a = rand(10,99); b = rand(1, Math.min(a,20));
+      sym = '−'; label = '➖ Subtraction'; correctAnswer = a - b;
+    } else {
+      a = rand(1,9); b = rand(1,9);
+      sym = '×'; label = '✖️ Multiplication'; correctAnswer = a * b;
+    }
+    document.getElementById('question').textContent = `${a}  ${sym}  ${b}  =`;
+    const badge = document.getElementById('opBadge');
+    badge.textContent = label; badge.className = `op-badge ${op}`;
+  }
+
+  // ── Countdown ────────────────────────────────────────────────
+  const CIRC = 2 * Math.PI * 18;
+  function startCountdown(secs, onDone) {
+    clearInterval(countdownTimer);
+    const bar = document.getElementById('countdownBar');
+    const txt = document.getElementById('countdownText');
+    document.getElementById('countdownWrap').classList.add('visible');
+    let rem = secs;
+    bar.style.strokeDashoffset = '0';
+    txt.textContent = `Next in ${rem}s…`;
+    countdownTimer = setInterval(() => {
+      rem -= 0.1;
+      bar.style.strokeDashoffset = CIRC * (1 - Math.max(0, rem / secs));
+      txt.textContent = `Next in ${Math.ceil(Math.max(0, rem))}s…`;
+      if (rem <= 0) {
+        clearInterval(countdownTimer);
+        document.getElementById('countdownWrap').classList.remove('visible');
+        onDone();
+      }
+    }, 100);
+  }
+
+  // ── Game flow ────────────────────────────────────────────────
+  function startTurn() {
+    answered = false; currentEntry = '';
+    renderDisplay('');
+    document.getElementById('feedback').textContent = '';
+    document.getElementById('feedback').className = 'feedback';
+    document.getElementById('countdownWrap').classList.remove('visible');
+    document.getElementById('checkBtn').disabled = false;
+    document.getElementById('numpad').style.pointerEvents = '';
+
+    const p = players[currentPlayer];
+    document.getElementById('whoseTurn').innerHTML =
+      `${p.avatar} <span style="color:${p.color}">${p.name}</span>, your turn!`;
+    document.getElementById('roundInfo').textContent =
+      `Turn ${round + 1}`;
+    generateQuestion();
+    updateScoreboard();
+  }
+
+  function checkAnswer() {
+    if (answered || currentEntry === '') return;
+    const val = parseInt(currentEntry, 10);
+    answered = true;
+    document.getElementById('checkBtn').disabled = true;
+    document.getElementById('numpad').style.pointerEvents = 'none';
+    const fb = document.getElementById('feedback');
+
+    if (val === correctAnswer) {
+      scores[currentPlayer] += POINTS_PER_CORRECT;
+      updateScoreboard();
+      renderDisplay('correct');
+      fb.textContent = `🎉 Correct! +${POINTS_PER_CORRECT} pts = ${POINTS_PER_CORRECT} min!`;
+      fb.className = 'feedback correct-fb';
+      spawnEmojis(['⭐','🌟','✨','🎊','🏅']);
+      speak(randomPraise());
+      if (scores[currentPlayer] % MILESTONE === 0) {
+        startCountdown(2, () => showMilestone(currentPlayer));
+      } else {
+        startCountdown(2, nextTurn);
+      }
+    } else {
+      scores[currentPlayer] = Math.max(0, scores[currentPlayer] - POINTS_PER_CORRECT);
+      updateScoreboard();
+      renderDisplay('wrong');
+      fb.textContent = `❌ Answer was ${correctAnswer}. -${POINTS_PER_CORRECT} min!`;
+      fb.className = 'feedback wrong-fb';
+      spawnEmojis(['😅','💪','🔁']);
+      speak('Next time!');
+      startCountdown(3, nextTurn);
+    }
+  }
+
+  function nextTurn() {
+    round++;
+    currentPlayer = (currentPlayer + 1) % players.length;
+    startTurn();
+  }
+
+  document.addEventListener('keydown', e => {
+    if (document.getElementById('setupScreen').style.display === 'none' ||
+        !document.getElementById('setupScreen').style.display) {
+      // only intercept digits/enter when setup is hidden and we're in-game
+      if (document.getElementById('gameBox').classList.contains('visible')) {
+        if (answered) return;
+        if (e.key >= '0' && e.key <= '9') padPress(+e.key);
+        else if (e.key === 'Backspace') padDel();
+        else if (e.key === 'Enter') checkAnswer();
+      }
+    }
+  });
+
+  // ── Milestone modal ──────────────────────────────────────────
+  function showMilestone(playerIdx) {
+    const p   = players[playerIdx];
+    const min = scores[playerIdx];
+    document.getElementById('milestoneModalInner').style.setProperty('--mc', p.color);
+    document.getElementById('milestoneTitle').textContent = `${p.avatar} ${p.name} earned ${min} minutes!`;
+    document.getElementById('milestoneBody').innerHTML =
+      `That's <strong>${min} min</strong> of tablet time! 🎉<br><br>What do you want to do?`;
+    document.getElementById('milestoneModal').classList.add('visible');
+    speak(`Congratulations ${p.name}! ${min} minutes of tablet time!`);
+    spawnEmojis(['🏆','🎉','⭐','🌟','🎊'], 14);
+  }
+
+  function milestoneChoice(choice) {
+    document.getElementById('milestoneModal').classList.remove('visible');
+    if (choice === 'continue') {
+      nextTurn();
+    } else if (choice === 'reset') {
+      scores = players.map(() => 0);
+      round  = 0;
+      currentPlayer = (currentPlayer + 1) % players.length;
+      updateScoreboard();
+      startTurn();
+    } else {
+      showEndScreen();
+    }
+  }
+
+  // ── End screen ───────────────────────────────────────────────
+  function showEndScreen() {
+    document.getElementById('scoreboard').classList.remove('visible');
+    document.getElementById('gameBox').classList.remove('visible');
+    document.getElementById('endScreen').classList.add('visible');
+
+    const sorted = players.map((p, i) => ({ ...p, score: scores[i] }))
+                          .sort((a, b) => b.score - a.score);
+    const ranks = ['🥇','🥈','🥉','🏅'];
+    document.getElementById('resultList').innerHTML = sorted.map((p, i) => `
+      <div class="result-item" style="--rc:${p.color}">
+        <div class="result-rank">${ranks[i] || '🏅'}</div>
+        <div class="result-info">
+          <div class="result-name">${p.avatar} ${p.name}</div>
+          <div class="result-score">${p.score} points earned</div>
+        </div>
+        <div class="result-minutes">${p.score} min 🕐</div>
+      </div>`).join('');
+
+    spawnEmojis(['🏆','🎉','⭐','🌟','🎊','🎈','🥳'], 20);
+    speak('Game over! Well done everyone!');
+  }
+
+  function playAgain() {
+    scores = players.map(() => 0);
+    currentPlayer = 0; round = 0; answered = false;
+    clearInterval(countdownTimer);
+    document.getElementById('endScreen').classList.remove('visible');
+    buildScoreboard();
+    document.getElementById('scoreboard').classList.add('visible');
+    document.getElementById('gameBox').classList.add('visible');
+    startTurn();
+  }
+
+  function goSetup() {
+    clearInterval(countdownTimer);
+    document.getElementById('endScreen').classList.remove('visible');
+    document.getElementById('scoreboard').classList.remove('visible');
+    document.getElementById('gameBox').classList.remove('visible');
+    document.getElementById('setupScreen').style.display = '';
+    // reset setup state
+    selectedCount = 0;
+    document.querySelectorAll('.count-btn').forEach(b => b.className = 'count-btn');
+    document.getElementById('namesGrid').innerHTML = '';
+    document.getElementById('startBtn').disabled = true;
+  }
+
+  // ── Emoji burst ──────────────────────────────────────────────
+  function spawnEmojis(pool, count = 8) {
+    for (let i = 0; i < count; i++) {
+      setTimeout(() => {
+        const el = document.createElement('div');
+        el.className = 'burst';
+        el.textContent = pool[Math.floor(Math.random() * pool.length)];
+        el.style.left = Math.random() * 90 + 5 + 'vw';
+        el.style.top  = Math.random() * 60 + 20 + 'vh';
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 1100);
+      }, i * 80);
+    }
+  }
+</script>
+</body>
+</html>
