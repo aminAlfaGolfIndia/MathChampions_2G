@@ -425,7 +425,15 @@
     <div class="whose-turn" id="whoseTurn"></div>
     <div class="op-badge" id="opBadge"></div>
     <div class="question" id="question"></div>
-    <div class="answer-display" id="answerDisplay">?</div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div class="answer-display" id="answerDisplay">?</div>
+      <div id="actionBtns" style="display:flex;flex-direction:column;gap:6px;">
+        <button type="button" class="numpad-btn check" id="checkBtn" onclick="checkAnswer()"
+          style="width:90px;padding:10px 0;font-size:1rem;grid-column:unset;">✓ Check</button>
+        <button type="button" id="tryAgainBtn" onclick="retryAnswer()" style="display:none;width:90px;font-family:'Nunito',sans-serif;font-size:0.8rem;font-weight:900;padding:8px 4px;border-radius:12px;border:none;background:linear-gradient(135deg,#FFD93D,#FF6B6B);color:#000;cursor:pointer;">🔄 Try again</button>
+        <button type="button" id="skipBtn" onclick="skipAnswer()" style="display:none;width:90px;font-family:'Nunito',sans-serif;font-size:0.8rem;font-weight:900;padding:8px 4px;border-radius:12px;border:2px solid #ffffff30;background:#ffffff10;color:var(--text);cursor:pointer;">⏭️ Skip</button>
+      </div>
+    </div>
     <div class="feedback" id="feedback"></div>
 
     <div class="countdown-wrap" id="countdownWrap">
@@ -447,22 +455,10 @@
       <button type="button" class="numpad-btn" onclick="padPress(1)">1</button>
       <button type="button" class="numpad-btn" onclick="padPress(2)">2</button>
       <button type="button" class="numpad-btn" onclick="padPress(3)">3</button>
-      <button class="numpad-btn zero" onclick="padPress(0)">0</button>
-      <button class="numpad-btn del"  onclick="padDel()">⌫</button>
-      <button class="numpad-btn check" id="checkBtn" onclick="checkAnswer()">✓ Check</button>
+      <button type="button" class="numpad-btn zero" onclick="padPress(0)">0</button>
+      <button type="button" class="numpad-btn del"  onclick="padDel()">⌫</button>
     </div>
 
-    <!-- Retry row (shown after a wrong answer) -->
-    <div id="retryRow" style="display:none;gap:8px;width:100%;max-width:300px;">
-      <button type="button" id="tryAgainBtn" onclick="retryAnswer()"
-        style="flex:1;font-family:'Nunito',sans-serif;font-size:0.95rem;font-weight:900;padding:10px 6px;border-radius:12px;border:none;background:linear-gradient(135deg,#FFD93D,#FF6B6B);color:#000;cursor:pointer;">
-        🔄 Try again
-      </button>
-      <button type="button" onclick="skipAnswer()"
-        style="flex:1;font-family:'Nunito',sans-serif;font-size:0.95rem;font-weight:900;padding:10px 6px;border-radius:12px;border:2px solid #ffffff30;background:#ffffff10;color:var(--text);cursor:pointer;">
-        ⏭️ Skip
-      </button>
-    </div>
   </div>
 
   <!-- ── INFO MODAL ── -->
@@ -686,8 +682,10 @@
     document.getElementById('feedback').className = 'feedback';
     document.getElementById('countdownWrap').classList.remove('visible');
     document.getElementById('checkBtn').disabled = false;
+    document.getElementById('checkBtn').style.display = '';
     document.getElementById('numpad').style.pointerEvents = '';
-    document.getElementById('retryRow').style.display = 'none';
+    document.getElementById('tryAgainBtn').style.display = 'none';
+    document.getElementById('skipBtn').style.display = 'none';
 
     const p = players[currentPlayer];
     document.getElementById('whoseTurn').innerHTML =
@@ -727,8 +725,9 @@
         fb.className = 'feedback wrong-fb';
         spawnEmojis(['😅','💪','🔁'], 4);
         speak('Try again!');
-        document.getElementById('retryRow').style.display = 'flex';
-        // let player retry — don't advance yet
+        document.getElementById('checkBtn').style.display = 'none';
+        document.getElementById('tryAgainBtn').style.display = '';
+        document.getElementById('skipBtn').style.display = '';
         answered = false;
       } else {
         // 5th wrong answer — deduct and move on
@@ -739,7 +738,9 @@
 
   function applyWrongPenalty(fb) {
     answered = true;
-    document.getElementById('retryRow').style.display = 'none';
+    document.getElementById('checkBtn').style.display = 'none';
+    document.getElementById('tryAgainBtn').style.display = 'none';
+    document.getElementById('skipBtn').style.display = 'none';
     document.getElementById('checkBtn').disabled = true;
     document.getElementById('numpad').style.pointerEvents = 'none';
     scores[currentPlayer] = Math.max(0, scores[currentPlayer] - POINTS_PER_CORRECT);
@@ -754,7 +755,9 @@
   }
 
   function retryAnswer() {
-    document.getElementById('retryRow').style.display = 'none';
+    document.getElementById('tryAgainBtn').style.display = 'none';
+    document.getElementById('skipBtn').style.display = 'none';
+    document.getElementById('checkBtn').style.display = '';
     document.getElementById('checkBtn').disabled = false;
     document.getElementById('numpad').style.pointerEvents = '';
     currentEntry = '';
