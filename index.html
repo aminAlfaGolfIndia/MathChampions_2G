@@ -222,6 +222,7 @@
     .op-badge.add { background: #4ECDC420; color: #4ECDC4; border: 1.5px solid #4ECDC4; }
     .op-badge.sub { background: #FF6B6B20; color: #FF6B6B; border: 1.5px solid #FF6B6B; }
     .op-badge.mul { background: #FFD93D20; color: #FFD93D; border: 1.5px solid #FFD93D; }
+    .op-badge.div { background: #C77DFF20; color: #C77DFF; border: 1.5px solid #C77DFF; }
 
     .question {
       font-size: 2.6rem; font-weight: 900;
@@ -635,7 +636,7 @@
   function rand(a, b) { return Math.floor(Math.random() * (b - a + 1)) + a; }
 
   function generateQuestion() {
-    const op = ['add','sub','mul'][Math.floor(Math.random() * 3)];
+    const op = ['add','sub','mul','div'][Math.floor(Math.random() * 4)];
     let a, b, sym, label;
     if (op === 'add') {
       do { a = rand(1,49); b = rand(1,49); } while (a+b >= 100);
@@ -643,9 +644,15 @@
     } else if (op === 'sub') {
       a = rand(10,99); b = rand(1, Math.min(a,20));
       sym = '−'; label = '➖ Subtraction'; correctAnswer = a - b;
-    } else {
+    } else if (op === 'mul') {
       a = rand(1,9); b = rand(1,9);
       sym = '×'; label = '✖️ Multiplication'; correctAnswer = a * b;
+    } else {
+      // division: pick answer (1-9) and divisor (1-9), derive dividend
+      correctAnswer = rand(1,9);
+      b = rand(1,9);
+      a = correctAnswer * b;   // dividend is always exact, ≤ 81
+      sym = '÷'; label = '➗ Division';
     }
     document.getElementById('question').textContent = `${a}  ${sym}  ${b}  =`;
     const badge = document.getElementById('opBadge');
